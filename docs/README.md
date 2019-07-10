@@ -2,7 +2,7 @@
 
 Welcome to `dry.js` - the Don't Repeat Yourself JS library.
 
-The motivation for this project came from a developer's love of existing tools (notably Twitter Bootstrap, jQuery and ReactJS) and an utter hatred of that repetative code which every project needs and nobody wants to write (it sometimes looks like this):
+The motivation for this project came from a developer's love of existing tools (notably Twitter Bootstrap, jQuery and RxJS) and an utter hatred of that repetative code which every project needs and nobody wants to write (it sometimes looks like this):
 
 ```
 var btnLogin = $('#btnLogin');
