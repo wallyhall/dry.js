@@ -11,6 +11,16 @@ var dry = (new function() {
     var loadWidgetPromises = {};
     var loadWidgetPromiseResults = {};
     
+    // recursively resolves an object property from a string, returning it
+    var resolvePropertyPath = function(path, obj) {
+        var propertyPath = path.split('.');
+        var propertyRef = obj;
+        for (var subPath of propertyPath) {
+            propertyRef = propertyRef[subPath];
+        }
+        return propertyRef;
+    };
+    
     /**
      * Replaces widget tags with actual widget doms.
      * The parent argument is used to resolve parent references at runtime.
@@ -29,7 +39,7 @@ var dry = (new function() {
                 $.each(this.attributes, function () {
                     // pass by reference a public property of the parent
                     if (this.value[0] == '$') {
-                        widgetArgs[this.name] = parent[this.value.substring(1)];
+                        widgetArgs[this.name] = resolvePropertyPath(this.value.substring(1), parent);
                     } else {
                         widgetArgs[this.name] = this.value;
                     }
@@ -56,6 +66,29 @@ var dry = (new function() {
     };
     
     /**
+     * Installs event handlers for all dom elements
+     */
+    self.installEventHandlers = function(dom, parent) {
+        var events = [
+            'blur', 'focus', 'focusin', 'focusout',
+            'change', 'select',
+            'click', 'dblclick', 'contextmenu',
+            'error',
+            'keydown', 'keypress', 'keyup',
+            'ready', 'load', 'unload',
+            'hover', 'mousedown', 'mouseenter', 'mouseleave', 'mousemove', 'mouseout', 'mouseover', 'mouseup',
+            'resize', 'scroll',
+            'submit'
+        ];
+        for (var event of events) {
+            dom.find('[dry-' + event + ']').each(function () {
+                var child = $(this);
+                child[event](resolvePropertyPath(child.attr('dry-' + event), parent));
+            });
+        }
+    };
+    
+    /**
      * Initialises an new widget object.
      */
     self.initialiseWidget = function(widget, args) {
@@ -66,6 +99,10 @@ var dry = (new function() {
             var namedChild = $(this);
             widget['$' + namedChild.attr('name')] = namedChild;
         });
+        
+        // configure all event handlers
+        self.installEventHandlers(widget.dom, widget);
+        
         // substitute in sub-widgets
         widget.widgets = self.substituteWidgetTags(widget.dom, widget);
         
@@ -115,7 +152,6 @@ var dry = (new function() {
     
         // promise to load the widget's dependencies
         dependencies.forEach(function(dependOnWidgetName) {
-            console.log(dependOnWidgetName);
             if (typeof widgets[widgetName] === 'undefined') {
                 loadPromises.push(self.loadWidget(dependOnWidgetName));
             }
@@ -174,9 +210,9 @@ var dry = (new function() {
         console.debug('dry.js', 'Starting to run...', runWidgetName, args);
         // bootstrap by loading the "run widget"
         self.loadWidget(runWidgetName).then(function() {
-            console.log('dry.js', 'Run widget loaded and registered... initialising', runWidgetName);
+            console.debug('dry.js', 'Run widget loaded and registered... initialising', runWidgetName);
             var runWidget = self.getWidget(runWidgetName, args);
-            console.log(runWidget.dom);
+            console.debug(runWidget.dom);
             $('body').append(runWidget.dom);
         })
         .catch(function(error) {
