@@ -83,7 +83,7 @@ dry.registerWidget('myApp', [], function() {
 
 Refresh - and if all works first time - you'll be looking at a page with a red coloured button which pops up an alert when clicked!
 
-Congrats.  You rock.
+Congrats!  You rock!
 
 The widget's `main.js` was loaded at run-time via AJAX, along with the `template.html` which was then injected into the page's DOM for you by `dry.js`.
 
